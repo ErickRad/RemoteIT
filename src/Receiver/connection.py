@@ -13,11 +13,7 @@ REQUEST = 'REQUEST_CONNECTION'
 ACCEPT = 'CONNECTION_ACCEPTED'
 DENY = 'CONNECTION_DENIED'
 
-hostname = socket.gethostname()
-local_ip = socket.gethostbyname(hostname)
-system = platform.system().lower()
-mac = getmac.get_mac_address().upper()
-screenWidth, screenHeigth = si.get_monitors()[0].width, si.get_monitors()[0].height
+
 
 udp = None
 mouse = ms.Controller()
@@ -25,6 +21,13 @@ mouse = ms.Controller()
 canCommand = False
 
 class Connection():
+    hostname = socket.gethostname()
+    local_ip = socket.gethostbyname(hostname)
+    system = platform.system().lower()
+    mac = getmac.get_mac_address().upper()
+    screenWidth, screenHeigth = si.get_monitors()[0].width, si.get_monitors()[0].height
+    status = ""
+
     addr = "0.0.0.0"
     port = 5000
     message = []
@@ -49,44 +52,44 @@ class Connection():
             Connection.port
         ))
 
-        print(f"Waiting for receivers on broadcast port {Connection.port}...\n")
+        status = (f"Waiting for receivers on broadcast port {Connection.port}...\n")
         while True:
             try:
                 data, Connection.addr = udp.recvfrom(BUFFER)
                 message = data.decode('utf-8').split("|")
 
                 if message[0] == DISCOVER:
-                    print(f"{DISCOVER} received from {Connection.addr[0]}:{Connection.port}")
-                    response = f"{AVAILABLE}|{hostname}|{system}"
+                    status = (f"{DISCOVER} received from {Connection.addr[0]}:{Connection.port}")
+                    response = f"{AVAILABLE}|{Connection.hostname}|{Connection.system}"
                     udp.sendto(
                         response.encode('utf-8'),
                         Connection.addr
                     )
-                    print(f"{AVAILABLE} sent to {Connection.addr[0]}:{Connection.port}\n")
+                    status = (f"{AVAILABLE} sent to {Connection.addr[0]}:{Connection.port}\n")
                     Connection.passcode = str(random.randint(1000, 9999))
 
-                    print(f"Use passcode {Connection.passcode} in your Android to connect\n")
+                    status = (f"Use passcode {Connection.passcode} in your Android to connect\n")
 
                 elif message[0] == REQUEST:
-                    print(f"{REQUEST} received from {Connection.addr[0]}:{Connection.port}")
+                    status = (f"{REQUEST} received from {Connection.addr[0]}:{Connection.port}")
 
                     if message[1] == Connection.passcode:
                         Connection.port = random.randint(5001, 8000)
                         currentMouseX, currentMouseY = mouse.position
-                        response = f"{ACCEPT}|true|{mac}|{Connection.port}|{screenWidth}|{screenHeigth}|{currentMouseX}|{currentMouseY}"
+                        response = f"{ACCEPT}|true|{Connection.mac}|{Connection.port}|{Connection.screenWidth}|{Connection.screenHeigth}|{currentMouseX}|{currentMouseY}"
                         udp.sendto(
                             response.encode('utf-8'),
                             Connection.addr
                         )
 
-                        print(f"{ACCEPT} sent to {Connection.addr[0]}:{Connection.port}\n")
+                        status = (f"{ACCEPT} sent to {Connection.addr[0]}:{Connection.port}\n")
                         udp.close()
                         udp = socket.socket(
                             socket.AF_INET,
                             socket.SOCK_DGRAM
                         )
                         udp.bind(("0.0.0.0", Connection.port))
-                        print(f"Connected to {Connection.addr[0]}:{Connection.port}\n\n")
+                        status = (f"Connected to {Connection.addr[0]}:{Connection.port}\n\n")
                         canCommand = True
                         break
                     else:
@@ -95,11 +98,11 @@ class Connection():
                             response.encode('utf-8'),
                             Connection.addr
                         )
-                        print(f"INVALID PASSCODE RECEIVED FROM {Connection.addr[0]}:{Connection.port}\n")
-                        print(f"Use passcode {Connection.passcode} in your Android to connect\n\n")
+                        status = (f"INVALID PASSCODE RECEIVED FROM {Connection.addr[0]}:{Connection.port}\n")
+                        status = (f"Use passcode {Connection.passcode} in your Android to connect\n\n")
 
             except socket.error as e:
-                print(e)
+                status = (e)
 
     @staticmethod
     def receiveCommands():
