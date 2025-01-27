@@ -29,6 +29,7 @@ class Connection {
   
 
   static Future<Response> discover() async {
+    port = 5000;
     udp = await RawDatagramSocket.bind(InternetAddress.anyIPv4, port);
     udp.broadcastEnabled = true;
 
@@ -81,13 +82,12 @@ class Connection {
         message = utf8.decode(datagram.data).split("|");
 
         if (message[0] == ACCEPT) {
-          validPasscode = bool.parse(message[1]);
-          mac = message[2];
-          port = int.tryParse(message[3])!;
+          mac = message[1];
+          port = int.tryParse(message[2])!;
+          Home.screenWidth = double.parse(message[3]);
           Home.screenWidth = double.parse(message[4]);
-          Home.screenWidth = double.parse(message[5]);
-          Home.cursorX = double.parse(message[6]);
-          Home.cursorY = double.parse(message[7]);
+          Home.cursorX = double.parse(message[5]);
+          Home.cursorY = double.parse(message[6]);
 
           udp.close();
 
@@ -96,14 +96,12 @@ class Connection {
             port,
           );
           return true;
-
-        }else if (message[0] == DENY){
-          validPasscode = bool.parse(message[1]);
         }
-      }
+      } 
     }
     return false;
   }
+  
 
   static void sendCommands(double x, double y, String action){
     response = "$x|$y|$action";

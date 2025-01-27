@@ -190,43 +190,34 @@ class _ConnectState extends State<Connect> {
                                     fontSize: Sizes.SECONDARY_TEXT
                                   ),
                                 ),
-                                onPressed: () {
-                                  Connection.connect(inputPasscode);
+                                onPressed: () async {
+                                  bool isValid = await Connection.connect(inputPasscode);
+                                  setState(() {
+                                    Connection.validPasscode = isValid;
+                                  });
                                   Navigator.of(context).pop();
+
                                   showDialog(
                                     context: context,
                                     builder: (BuildContext context) {
-                                      return Connection.validPasscode 
-                                      ? AlertDialog(
+                                      return AlertDialog(
                                         backgroundColor: Scheme.BACK,
-                                        title: const Text(
+                                        title: Connection.validPasscode 
+                                        ? const Text(
                                           'Success',
                                           style: TextStyle(color: Scheme.WIDGETS),
-                                        ),
-                                        content: const Text(
-                                          'Connected successfully!',
-                                          style: TextStyle(color: Scheme.WIDGETS),
-                                        ),
-                                        actions: [
-                                          TextButton(
-                                            child: const Text(
-                                              'OK',
-                                              style: TextStyle(color: Scheme.WIDGETS),
-                                            ),
-                                            onPressed: () {
-                                              Navigator.of(context).push(MaterialPageRoute(builder:(context) => Home()));
-                                            },
-                                          ),
-                                        ],
-                                      )
-                                      : AlertDialog(
-                                        backgroundColor: Scheme.BACK,
-                                        title: const Text(
+                                        )
+                                        : const Text(
                                           'Error',
                                           style: TextStyle(color: Scheme.WIDGETS),
                                         ),
-                                        content: const Text(
-                                          'Incorrect password!',
+                                        content: Connection.validPasscode 
+                                        ? const Text(
+                                          'Sucessfully Connected!',
+                                          style: TextStyle(color: Scheme.WIDGETS),
+                                        )
+                                        : const Text(
+                                          'Invalid Passcode!',
                                           style: TextStyle(color: Scheme.WIDGETS),
                                         ),
                                         actions: [
@@ -236,7 +227,11 @@ class _ConnectState extends State<Connect> {
                                               style: TextStyle(color: Scheme.WIDGETS),
                                             ),
                                             onPressed: () {
-                                              Navigator.of(context).pop();
+                                              if(Connection.validPasscode){
+                                                Navigator.of(context).push(MaterialPageRoute(builder:(context) => Home()));
+                                              }else{
+                                                Navigator.of(context).pop();
+                                              }
                                             },
                                           ),
                                         ],

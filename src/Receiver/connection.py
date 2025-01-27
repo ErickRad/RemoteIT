@@ -1,10 +1,10 @@
 from pynput import mouse as ms, keyboard as kb
+import screeninfo as si
 import socket
 import platform
 import random
 import time
-import getmac 
-import screeninfo as si
+import getmac
 
 BUFFER = 1024
 DISCOVER = 'DISCOVER_SERVER'
@@ -13,25 +13,27 @@ REQUEST = 'REQUEST_CONNECTION'
 ACCEPT = 'CONNECTION_ACCEPTED'
 DENY = 'CONNECTION_DENIED'
 
-
+screenWidth, screenHeigth = si.get_monitors()[0].width, si.get_monitors()[0].height
 
 udp = None
 mouse = ms.Controller()
 
-canCommand = False
 
 class Connection():
     hostname = socket.gethostname()
     local_ip = socket.gethostbyname(hostname)
     system = platform.system().lower()
     mac = getmac.get_mac_address().upper()
-    screenWidth, screenHeigth = si.get_monitors()[0].width, si.get_monitors()[0].height
 
     addr = "0.0.0.0"
     port = 5000
     message = []
     response = ""
     passcode = ""
+
+    connected = False
+    trustedDevice = False
+    canCommand = False
 
     @staticmethod
     def connectToReceiver():
@@ -66,7 +68,6 @@ class Connection():
                     )
                     print (f"{AVAILABLE} sent to {Connection.addr[0]}\n")
                     Connection.passcode = str(random.randint(1000, 9999))
-
                     print (f"Use passcode {Connection.passcode} in your Android to connect\n")
 
                 elif message[0] == REQUEST:
@@ -75,7 +76,7 @@ class Connection():
                     if message[1] == Connection.passcode:
                         Connection.port = random.randint(5001, 8000)
                         currentMouseX, currentMouseY = mouse.position
-                        response = f"{ACCEPT}|true|{Connection.mac}|{Connection.port}|{Connection.screenWidth}|{Connection.screenHeigth}|{currentMouseX}|{currentMouseY}"
+                        response = f"{ACCEPT}|{Connection.mac}|{Connection.port}|{screenWidth}|{screenHeigth}|{currentMouseX}|{currentMouseY}"
                         udp.sendto(
                             response.encode('utf-8'),
                             Connection.addr
@@ -89,15 +90,11 @@ class Connection():
                         )
                         udp.bind(("0.0.0.0", Connection.port))
                         print (f"Connected to {Connection.addr[0]}\n\n")
-                        canCommand = True
+                        Connection.connected = True
+                        Connection.canCommand = True
                         break
                     else:
-                        response = f"{DENY}|false"
-                        udp.sendto(
-                            response.encode('utf-8'),
-                            Connection.addr
-                        )
-                        print (f"INVALID PASSCODE RECEIVED FROM {Connection.addr[0]}:{Connection.port}\n")
+                        print (f"INVALID PASSCODE RECEIVED FROM {Connection.addr[0]}\n")
                         print (f"Use passcode {Connection.passcode} in your Android to connect\n\n")
 
             except socket.error as e:
@@ -105,10 +102,10 @@ class Connection():
 
     @staticmethod
     def receiveCommands():
-        global udp, canCommand
+        global udp
 
         while True:
-            if(canCommand):
+            if(Connection.canCommand):
                 data, Connection.addr = udp.recvfrom(BUFFER)
                 message = data.decode('utf-8').split("|")
                 
