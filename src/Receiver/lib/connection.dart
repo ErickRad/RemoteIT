@@ -118,6 +118,7 @@ class Connection {
               );
               break;
           }
+          await Future.delayed(Duration(milliseconds: 10));
         }
       }
     }
@@ -126,6 +127,5 @@ class Connection {
   static void closeConnection() {
     udp.close();
     Connection.connected = false;
-    print("Connection closed.");
   }
 }
