@@ -3,10 +3,8 @@ import 'importManager.dart';
 class Home extends StatefulWidget {
   const Home({super.key});
 
-  static double cursorX = 0.0; 
-  static double cursorY = 0.0;
-  static double screenWidth = 0.0;
-  static double screenHeigth = 0.0;
+  static int cursorX = 0; 
+  static int cursorY = 0;
 
   @override
   State<Home> createState() => _HomeState();
@@ -20,10 +18,10 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
 
   bool useGyroscope = false;
 
-  double _currentPositionGestureX = 0.0;
-  double _currentPositionGestureY = 0.0; 
-  double _currentPositionGyroscopeX = 0.0;
-  double _currentPositionGyroscopeY = 0.0;
+  int _currentPositionGestureX = 0;
+  int _currentPositionGestureY = 0; 
+  int _currentPositionGyroscopeX = 0;
+  int _currentPositionGyroscopeY = 0;
 
   String x = "0.00";
   String y = "0.00";
@@ -31,6 +29,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    
     _controller = AnimationController(vsync: this);
   }
 
@@ -47,8 +46,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
       samplingPeriod: Duration(milliseconds: 20),
     ).listen((GyroscopeEvent event) {
       setState(() {
-        _currentPositionGyroscopeX += event.z * -50;
-        _currentPositionGyroscopeY += event.x * -50;
+        _currentPositionGyroscopeX += (event.z * -50).toInt();
+        _currentPositionGyroscopeY += (event.x * -50).toInt();
         Connection.sendCommands(
             Home.cursorX + _currentPositionGyroscopeX,
             Home.cursorY + _currentPositionGyroscopeY, 
@@ -216,8 +215,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     (instance) {
                       instance.onUpdate = (details) {
                         setState(() {
-                          _currentPositionGestureX += details.delta.dx.toDouble() * 2;
-                          _currentPositionGestureY += details.delta.dy.toDouble() * 2;
+                          _currentPositionGestureX += details.delta.dx.toInt() * 2;
+                          _currentPositionGestureY += details.delta.dy.toInt() * 2;
 
                           x = _currentPositionGestureX.toStringAsFixed(2);
                           y = _currentPositionGestureY.toStringAsFixed(2);
@@ -389,12 +388,15 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: <Widget>[
-        homeTopBar(),
-        homeBody(),
-        homeBottomBar(),
-      ],
+    return Container( 
+      color: Scheme.BACK,
+      child: Column(
+        children: [
+          homeTopBar(),
+          homeBody(),
+          homeBottomBar(),
+        ],
+      )
     );
   }
 }
