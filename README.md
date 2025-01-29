@@ -17,7 +17,7 @@ ________________________________________________________________________________
 
 Use:
 
-Unzip the Receiver folder
+Unzip the RemoteReceiver folder
 
 Install the .apk on your smartphone
 
